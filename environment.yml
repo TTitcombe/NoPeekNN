@@ -1,0 +1,18 @@
+name: nopeek
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - python=3.7.*
+  - numpy >=1.16
+  - pytorch
+  - torchvision
+  - cpuonly
+  - tensorboard
+  - matplotlib >=3.1  # for basic plotting
+# notebooks
+  - jupyter  # for notebooks
+  - jupyterlab  # for notebooks IDE
+  - nodejs  # for jupyterlab build
+# utilities
+  - tqdm
