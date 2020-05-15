@@ -29,8 +29,7 @@ def train_epoch(
 
         optimiser.zero_grad()
 
-        intermediates = model.encode(inputs)
-        outputs = model.decode(intermediates)
+        outputs, intermediates = model(inputs)
 
         loss = criterion(inputs, intermediates, outputs, targets)
         loss.backward()
@@ -56,7 +55,7 @@ def test(model, test_loader, device) -> float:
         test_targets = test_targets.to(device)
 
         with torch.no_grad():
-            outputs = model(test_inputs)
+            outputs, _ = model(test_inputs)
 
         _, predicted = outputs.max(1)
         total_test += test_targets.size(0)
@@ -92,9 +91,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--saveas",
-        default="splitnn_nopeek",
+        default="nopeek",
         type=str,
-        help="Name of model to save as (default is 'splitnn')."
+        help="Name of model to save as (default is 'nopeek')."
         "Note that '_{nopeek_weight}weight' will be appended to the end of the name",
     )
     parser.add_argument(
