@@ -1,3 +1,4 @@
+from os import PathLike
 from typing import Optional
 
 import matplotlib.pyplot as plt
@@ -5,7 +6,7 @@ import torch
 from torchvision import transforms
 
 
-def plot_images(tensors, rows: Optional[int] = None, cols: Optional[int] = None):
+def plot_images(tensors, rows: Optional[int] = None, cols: Optional[int] = None, save_path: Optional[PathLike] = None):
     """
     Plot normalised MNIST tensors as images
     """
@@ -39,4 +40,6 @@ def plot_images(tensors, rows: Optional[int] = None, cols: Optional[int] = None)
             ax.imshow(transforms.ToPILImage()(tensor), interpolation="bicubic")
 
     plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path)
     plt.show()

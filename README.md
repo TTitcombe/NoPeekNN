@@ -5,6 +5,8 @@ currently trained on MNIST.
 We implement a black box model inversion attack
 to validate the protection afforded by [NoPeek].
 
+![Black box model inversion attack on NoPeekNN with weighting 0.1](./results/reconstruction_01weight_500ims.png)
+
 ## What is NoPeekNN?
 [NoPeekNN][nopeek] is an extension to [SplitNNs][splitnn] to preserve privacy.
 While [SplitNNs][splitnn] do not send raw data to a potentially
@@ -39,10 +41,16 @@ to create an environment with the exact package versions
 used to develop this code.
 
 ## Get started
-Run `python main.py --nopeek_weight 0.1` to train a SplitNN model
-on MNIST
-with a weighting of `0.1` for NoPeek loss.
+To train a SplitNN on MNIST with a NoPeekLoss,
+un `python main.py --nopeek_weight <weight>`
+where `<weight>` is a float.
+
+Models are saved to the [`models/`](models) directory.
+We have provided a selection of trained models.
+
 See other optional arguments with `python main.py --help`.
+
+Trained
 
 NoPeek loss is computationally demanding and
 scales with the size of a data batch,
