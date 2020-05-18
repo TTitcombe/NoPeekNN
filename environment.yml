@@ -4,15 +4,14 @@ channels:
   - pytorch
 dependencies:
   - python=3.7.*
-  - numpy >=1.16
-  - pytorch
+  - numpy
+  - pytorch==1.4.*
   - torchvision
   - cpuonly
-  - tensorboard
-  - matplotlib >=3.1  # for basic plotting
-# notebooks
-  - jupyter  # for notebooks
-  - jupyterlab  # for notebooks IDE
-  - nodejs  # for jupyterlab build
+  - matplotlib
+  - jupyterlab==2.1.*  # version to be compatible with PySyft
 # utilities
   - tqdm
+  - pip >= 19
+  - pip:
+      - syft[udacity]
