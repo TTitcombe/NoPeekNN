@@ -5,37 +5,53 @@ from pathlib import Path
 from typing import Tuple
 
 import torch
-import torch.optim as optim
 import torchvision.transforms as transforms
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.datasets import MNIST
 from tqdm import tqdm
 
-from src import SplitNN, NoPeekLoss
+import syft as sy
+
+from src import SplitNN, NoPeekLoss, model_part1, model_part2
+
+# Set torch-hook
+hook = sy.TorchHook(torch)
 
 
 def train_epoch(
-    model, optimiser, criterion, train_loader, device
+    model, criterion, train_loader, device
 ) -> Tuple[float, float]:
     train_loss = 0.0
 
     correct = 0
     total = 0
 
+    first_model_location = model.location
+    last_model_location = model.models[-1].location
+
     model.train()
     for batch_idx, (inputs, targets) in enumerate(train_loader):
-        inputs = inputs.to(device)
-        targets = targets.to(device)
+        inputs = inputs.to(device).send(first_model_location)
+        targets = targets.to(device).send(last_model_location)
 
-        optimiser.zero_grad()
+        model.zero_grads()
 
         outputs, intermediates = model(inputs)
 
-        loss = criterion(inputs, intermediates, outputs, targets)
-        loss.backward()
-        optimiser.step()
+        losses = criterion(inputs, intermediates, outputs, targets)
 
-        train_loss += loss.item()
+        _step_loss = 0.0
+        for loss in losses:
+            loss.backward()
+            _step_loss += loss.get().item()
+
+        model.backward()
+        model.step()
+
+        train_loss += _step_loss
+
+        outputs = outputs.get()
+        targets = targets.get()
 
         _, predicted = outputs.max(1)
         total += targets.size(0)
@@ -49,13 +65,19 @@ def test(model, test_loader, device) -> float:
     correct_test = 0
     total_test = 0
 
+    first_model_location = model.location
+    last_model_location = model.models[-1].location
+
     model.eval()
     for test_inputs, test_targets in test_loader:
-        test_inputs = test_inputs.to(device)
-        test_targets = test_targets.to(device)
+        test_inputs = test_inputs.to(device).send(first_model_location)
+        test_targets = test_targets.to(device).send(last_model_location)
 
         with torch.no_grad():
             outputs, _ = model(test_inputs)
+
+        outputs = outputs.get()
+        test_targets = test_targets.get()
 
         _, predicted = outputs.max(1)
         total_test += test_targets.size(0)
@@ -82,12 +104,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--learning_rate",
-        default=1,
+        default=0.6,
         type=float,
-        help="Starting learning rate. Decays every epoch by gamma (default 1)",
-    )
-    parser.add_argument(
-        "--gamma", default=0.7, type=float, help="Learning rate decay (default 0.7)",
+        help="Starting learning rate (default 0.6)",
     )
     parser.add_argument(
         "--saveas",
@@ -119,10 +138,23 @@ if __name__ == "__main__":
 
     summary_writer_path = project_root / "models" / ("tb_" + model_name)
 
-    # ----- Model -----
-    model = SplitNN()
-    model = model.to(DEVICE)
-    model.train()
+    # ----- Model Parts -----
+    models = [model_part1, model_part2]
+    optims = [
+        torch.optim.SGD(model.parameters(), lr=args.lr, )
+        for model in models
+    ]
+
+    # ----- Users -----
+    alice = sy.VirtualWorker(hook, id="alice")
+    bob = sy.VirtualWorker(hook, id="bob")
+
+    for model, location in zip(models, [alice, bob]):
+        model.send(location)
+
+    # Create model
+    split_model = SplitNN([model_part1, model_part2], optims)
+    split_model.train()
 
     # ----- Data -----
     data_transform = transforms.Compose(
@@ -149,35 +181,29 @@ if __name__ == "__main__":
 
     best_accuracy = 0.0
 
-    writer = SummaryWriter(summary_writer_path)
+    #writer = SummaryWriter(summary_writer_path)
 
     criterion = NoPeekLoss(weighting)
-
-    optimiser = optim.Adadelta(model.parameters(), lr=args.learning_rate)
-    scheduler = optim.lr_scheduler.StepLR(optimiser, step_size=1, gamma=args.gamma)
 
     epoch_pbar = tqdm(total=n_epochs)
 
     print("Starting training...")
     for epoch in range(n_epochs):
         train_acc, train_loss = train_epoch(
-            model, optimiser, criterion, train_loader, DEVICE
+            split_model, criterion, train_loader, DEVICE
         )
-        test_acc = test(model, test_loader, DEVICE)
-
-        # Update learning rate
-        scheduler.step()
+        test_acc = test(split_model, test_loader, DEVICE)
 
         # Update tensorboard
-        writer.add_scalars("Accuracy", {"train": train_acc, "test": test_acc}, epoch)
-        writer.add_scalar("Loss/train", train_loss, epoch)
+        #writer.add_scalars("Accuracy", {"train": train_acc, "test": test_acc}, epoch)
+        #writer.add_scalar("Loss/train", train_loss, epoch)
 
         # Save model if it's an improvement
         if test_acc > best_accuracy:
             best_accuracy = test_acc
 
             state_dict = {
-                "model_state_dict": model.state_dict(),
+                "model_state_dict": split_model.state_dict(),
                 "epoch": epoch,
                 "train_acc": train_acc,
                 "test_acc": test_acc,
@@ -193,4 +219,4 @@ if __name__ == "__main__":
         epoch_pbar.update(1)
 
     epoch_pbar.close()
-    writer.close()
+    #writer.close()

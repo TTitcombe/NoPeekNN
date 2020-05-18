@@ -5,6 +5,9 @@ currently trained on MNIST.
 We implement a black box model inversion attack
 to validate the protection afforded by [NoPeek].
 
+This implementation uses [`PySyft`][syft] to simulate distributed training,
+as would happen in applied SplitNN.
+
 ![Black box model inversion attack on NoPeekNN with weighting 0.1](./results/reconstruction_01weight_500ims.png)
 
 ## What is NoPeekNN?
@@ -59,3 +62,5 @@ so it is recommended to stick to small (<64) batch sizes.
 
 [nopeek]: https://aiforsocialgood.github.io/iclr2019/accepted/track1/pdfs/29_aisg_iclr2019.pdf
 [splitnn]: https://arxiv.org/pdf/1812.00564.pdf
+
+[syft]: https://github.com/OpenMined/PySyft
