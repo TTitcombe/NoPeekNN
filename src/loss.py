@@ -10,7 +10,14 @@ class NoPeekLoss(torch.nn.modules.loss._Loss):
         self.dcor = DistanceCorrelationLoss()
 
     def forward(self, inputs, intermediates, outputs, targets):
-        return self.ce(outputs, targets) + self.dcor_weighting * self.dcor(inputs, intermediates)
+        cce_loss = self.ce(outputs, targets)
+
+        # DistanceCorrelationLoss is costly, so only calc it if necessary
+        if self.dcor_weighting > 0.0:
+            dcor_loss = self.dcor_weighting * self.dcor(inputs, intermediates)
+            return cce_loss, dcor_loss
+        else:
+            return cce_loss,
 
 
 class DistanceCorrelationLoss(torch.nn.modules.loss._Loss):
