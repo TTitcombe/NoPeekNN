@@ -17,7 +17,7 @@ class NoPeekLoss(torch.nn.modules.loss._Loss):
             dcor_loss = self.dcor_weighting * self.dcor(inputs, intermediates)
             return cce_loss, dcor_loss
         else:
-            return cce_loss,
+            return (cce_loss,)
 
 
 class DistanceCorrelationLoss(torch.nn.modules.loss._Loss):
@@ -45,7 +45,7 @@ class DistanceCorrelationLoss(torch.nn.modules.loss._Loss):
         return (a_matrix * b_matrix).sum().sqrt() / a_matrix.size(0)
 
     def _distance_variance(self, a_matrix):
-        return (a_matrix**2).sum().sqrt() / a_matrix.size(0)
+        return (a_matrix ** 2).sum().sqrt() / a_matrix.size(0)
 
     def _A_matrix(self, data):
         distance_matrix = self._distance_matrix(data)
@@ -63,7 +63,6 @@ class DistanceCorrelationLoss(torch.nn.modules.loss._Loss):
         for i in range(n):
             for j in range(n):
                 row_diff = data[i] - data[j]
-                distance_matrix[i, j] = (row_diff**2).sum()
+                distance_matrix[i, j] = (row_diff ** 2).sum()
 
         return distance_matrix
-

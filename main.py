@@ -18,9 +18,7 @@ from src import SplitNN, NoPeekLoss, model_part1, model_part2
 hook = sy.TorchHook(torch)
 
 
-def train_epoch(
-    model, criterion, train_loader, device
-) -> Tuple[float, float]:
+def train_epoch(model, criterion, train_loader, device) -> Tuple[float, float]:
     train_loss = 0.0
 
     correct = 0
@@ -87,9 +85,7 @@ def test(model, test_loader, device) -> float:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Train a SplitNN with NoPeek loss"
-    )
+    parser = argparse.ArgumentParser(description="Train a SplitNN with NoPeek loss")
     parser.add_argument(
         "--nopeek_weight",
         type=float,
@@ -140,10 +136,7 @@ if __name__ == "__main__":
 
     # ----- Model Parts -----
     models = [model_part1, model_part2]
-    optims = [
-        torch.optim.SGD(model.parameters(), lr=args.lr, )
-        for model in models
-    ]
+    optims = [torch.optim.SGD(model.parameters(), lr=args.lr,) for model in models]
 
     # ----- Users -----
     alice = sy.VirtualWorker(hook, id="alice")
@@ -181,7 +174,7 @@ if __name__ == "__main__":
 
     best_accuracy = 0.0
 
-    #writer = SummaryWriter(summary_writer_path)
+    # writer = SummaryWriter(summary_writer_path)
 
     criterion = NoPeekLoss(weighting)
 
@@ -195,8 +188,8 @@ if __name__ == "__main__":
         test_acc = test(split_model, test_loader, DEVICE)
 
         # Update tensorboard
-        #writer.add_scalars("Accuracy", {"train": train_acc, "test": test_acc}, epoch)
-        #writer.add_scalar("Loss/train", train_loss, epoch)
+        # writer.add_scalars("Accuracy", {"train": train_acc, "test": test_acc}, epoch)
+        # writer.add_scalar("Loss/train", train_loss, epoch)
 
         # Save model if it's an improvement
         if test_acc > best_accuracy:
@@ -219,4 +212,4 @@ if __name__ == "__main__":
         epoch_pbar.update(1)
 
     epoch_pbar.close()
-    #writer.close()
+    # writer.close()

@@ -6,7 +6,12 @@ import torch
 from torchvision import transforms
 
 
-def plot_images(tensors, rows: Optional[int] = None, cols: Optional[int] = None, save_path: Optional[PathLike] = None):
+def plot_images(
+    tensors,
+    rows: Optional[int] = None,
+    cols: Optional[int] = None,
+    save_path: Optional[PathLike] = None,
+):
     """
     Plot normalised MNIST tensors as images
     """

@@ -5,22 +5,22 @@ import torch
 
 
 model_part1 = torch.nn.Sequential(
-            torch.nn.Conv2d(1, 32, 3, 1),
-            torch.nn.ReLU(),
-            torch.nn.Conv2d(32, 64, 3, 1),
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(2),
-            torch.nn.Flatten(),
-            torch.nn.Linear(9216, 500),
-        )
+    torch.nn.Conv2d(1, 32, 3, 1),
+    torch.nn.ReLU(),
+    torch.nn.Conv2d(32, 64, 3, 1),
+    torch.nn.ReLU(),
+    torch.nn.MaxPool2d(2),
+    torch.nn.Flatten(),
+    torch.nn.Linear(9216, 500),
+)
 
 
 model_part2 = torch.nn.Sequential(
-            torch.nn.Linear(500, 128),
-            torch.nn.ReLU(),
-            torch.nn.Linear(128, 10),
-            torch.nn.Softmax(dim=1),
-        )
+    torch.nn.Linear(500, 128),
+    torch.nn.ReLU(),
+    torch.nn.Linear(128, 10),
+    torch.nn.Softmax(dim=1),
+)
 
 
 class SplitNN(torch.nn.Module):
@@ -40,7 +40,9 @@ class SplitNN(torch.nn.Module):
         for i in range(1, len(self.models)):
             self.inputs[i] = self.outputs[i - 1].detach().requires_grad_()
             if self.outputs[i - 1].location != self.models[i].location:
-                self.inputs[i] = self.inputs[i].move(self.models[i].location).requires_grad_()
+                self.inputs[i] = (
+                    self.inputs[i].move(self.models[i].location).requires_grad_()
+                )
             self.outputs[i] = self.models[i](self.inputs[i])
 
         return self.outputs[-1], self.outputs[0]
