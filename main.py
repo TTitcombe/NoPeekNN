@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
     # ----- Model Parts -----
     models = [model_part1, model_part2]
-    optims = [torch.optim.SGD(model.parameters(), lr=args.lr,) for model in models]
+    optims = [torch.optim.SGD(model.parameters(), lr=args.learning_rate,) for model in models]
 
     # ----- Users -----
     alice = sy.VirtualWorker(hook, id="alice")
