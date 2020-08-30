@@ -1,5 +1,8 @@
 # NoPeekNN
 
+!! NOTE: THE PYSYFT IMPLEMENTATION DOES NOT CURRENTLY WORK. USE BRANCH `no-syft`
+FOR A WORKING IMPLEMENTATION OF NOPEEK !! 
+
 PyTorch implementation of [NoPeekNN][nopeek],
 currently trained on MNIST.
 We implement a black box model inversion attack
